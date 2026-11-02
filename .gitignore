@@ -1,0 +1,43 @@
+# Source reference file (explicitly excluded as per instructions)
+skills_biostat.txt
+
+# Scratch and temporary scripts
+scratch/
+test_*.py
+build_*.py
+generate_*.py
+process_*.py
+verify_*.py
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# Antigravity & Agent environment artifacts
+.gemini/
+.agents/runs/
+brain/
+.system_generated/
+
+# Data & Private Research Artifacts (BioStat Agent Privacy Rules)
+data/
+data/raw/
+data/processed/
+runs/
+*.rds
+*.RData
+*.Rhistory
+.Rhistory
+.RData
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+
+# Environment and sensitive keys
+.env
+.env.local
