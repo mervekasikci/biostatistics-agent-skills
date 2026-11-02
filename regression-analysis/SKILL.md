@@ -1,6 +1,6 @@
 ---
 name: regression-analysis
-description: Fit and check linear, binary, ordinal and count-response regression for independent observations. Use for specified GLM, hurdle or zero-inflated model questions.
+description: Fit and check linear, binary, ordinal and count-response regression for independent observations. Use for specified GLM and count model questions.
 ---
 
 # Regression Analysis
@@ -30,13 +30,12 @@ description: Fit and check linear, binary, ordinal and count-response regression
 - For each `analysis_id`, save `analysis.R`, `results.json`, diagnostic figures and session info; include formula, coefficients, inference methods, model fit, diagnostics, limitations and `verification_status: PENDING`.
 - Predictive-model performance validation is not initiated unless explicitly in scope.
 
-## Ordinal, count and mixture models
+## Ordinal and count models
 1. Require outcome support, ordinal category order or count observation/exposure window, reference levels, scientific covariates and family/link. Use group-comparisons (model diagnostics protocol); predictors and non-Gaussian outcomes need not satisfy normality.
 2. For ordinal proportional-odds regression, inspect sparse categories and proportional-odds diagnostics, including a Brant test only for a compatible fitted model/implementation. Do not merge categories or switch models solely on a p value. Consider scientifically justified partial proportional odds or another explicitly supported model through planning.
-3. For Poisson models, include log exposure as offset for a rate estimand when appropriate; verify positive exposure. Check conditional dispersion and residual fit. Consider negative binomial for supported extra-Poisson variation; many zeros alone do not establish zero inflation.
-4. For ZIP/ZINB specify a credible structural-zero process and count component; for hurdle models distinguish occurrence from the zero-truncated positive-count process. Specify each component's formula/link and estimand. Check identifiability, Hessian, convergence, sparse outcomes and simulated/residual fit; compare only compatible likelihoods and scientific questions. Do not use an unqualified Vuong-test threshold as an automatic model selector.
-5. Report component-specific coefficients, links and CIs; label exponentiated count/rate effects according to the model and offset. Do not equate zero-process ORs, count-component ratios and marginal population effects.
-6. Fit planned bias-reduced/penalized logistic estimation for separation only when the revised plan and dependencies support it; otherwise stop. Preserve diagnostic evidence and original estimation failure.
+3. For Poisson models, include log exposure as offset for a rate estimand when appropriate; verify positive exposure. Check conditional dispersion and residual fit. Consider negative binomial for supported extra-Poisson variation.
+4. Report coefficients, links and CIs; label exponentiated count/rate effects according to the model and offset. Do not equate count-component ratios and marginal population effects.
+5. Fit planned bias-reduced/penalized logistic estimation for separation only when the revised plan and dependencies support it; otherwise stop. Preserve diagnostic evidence and original estimation failure.
 
 ## Internal verification — required before release
 - Verify source/prepared hashes, plan and code versions, observation/pair/cluster counts, exclusions, labels, units, event/reference coding and effect direction.
@@ -58,32 +57,32 @@ description: Fit and check linear, binary, ordinal and count-response regression
 ## Model Diagnostics — integrated protocol
 
 1. Diagnose the selected method's assumptions on the relevant object: within-group distributions, paired differences, model residuals, link-scale functional form or dependence. Binary/count outcomes and predictors need not be normally distributed.
-2. Combine Q-Q/residual plots, sample size, outliers and scientific context; use Shapiro-Wilk only within its supported sample-size range. Do not make test selection depend solely on a normality p value.
-3. Use Levene/Brown-Forsythe for relevant group variance comparisons and Breusch-Pagan for appropriate linear-model heteroscedasticity checks. Inspect residual-versus-fitted plots. Consider prespecified Welch/robust inference while preserving the intended estimand.
-4. Assess VIF/GVIF with coding and factor-df interpretation; flag rank deficiency. Do not delete covariates solely because a threshold is exceeded. Establish independence from design; use Durbin-Watson only for a meaningful ordered residual process, with implementation limitations.
-5. Use Box-Cox only for eligible positive responses, Yeo-Johnson for eligible signed/zero data and rank-based inverse normal transformation only when explicitly justified. Record parameters, ties and scale changes. Never transform repeatedly until p exceeds 0.05. Keep original variables, revisit the estimand and rerun diagnostics; distinguish back-transformed model summaries from arithmetic means.
-6. Assess model-specific separation, overdispersion, proportional odds, random-effect/covariance adequacy or PH in the responsible analysis skill. A satisfactory generic diagnostic report does not certify these assumptions.
+2. Combine Q–Q/residual plots, influential-observation checks (e.g. Cook's distance) and formal diagnostics (e.g. Shapiro–Wilk on residuals or difference scores for small-to-moderate n) with scientific context; never infer normality or homoscedasticity from a single p value alone.
+3. Use Levene/Brown–Forsythe or model-residual diagnostics for homoscedasticity; unequal group sizes make Welch methods the default unless equal variance is well justified.
+4. Assess VIF/GVIF, leverage and Cook's distance in multivariable models. For count and generalized models, assess dispersion (dispersion parameter, formal overdispersion test).
+5. Use Box-Cox only for strictly positive responses; consider Yeo-Johnson for signed data and rank-based inverse normal transformations with documented estimand changes.
+6. Assess model-specific separation, overdispersion, proportional odds, random-effect/covariance adequacy or PH in the respective skill.
+
 ### Specific outputs and checks
-Save diagnostics.json listing object, evidence, limitation, severity and remedy; mark an unperformed check NOT_CHECKED. The analysis skill owns the final method; planning owns estimand changes; data-preparation implements approved transformations. Unresolved material violations block the affected inference.
+- Save `diagnostics.json` listing object, evidence, limitation, severity and remedy; mark an unperformed check `NOT_CHECKED`.
+- A critical diagnostic violation prevents `PASS` without an approved fallback or sensitivity analysis.
 
 ## Multiplicity Control — integrated protocol
 
-1. Obtain analysis IDs, primary/secondary/exploratory labels, prespecified contrasts, family membership and inferential objective. Define families before inspecting significance. Never redefine a family to improve adjusted p values.
-2. Use Holm as a documented default for a general FWER family when no other justified plan exists. Support Bonferroni; use Hochberg only under suitable independence/positive-dependence conditions. Use Benjamini-Hochberg for planned FDR control under suitable dependence; consider Benjamini-Yekutieli for arbitrary dependence with a stated rationale.
-3. Use Storey q-values only for justified screening families with enough tests and documented pi0 estimation, tuning and diagnostics. Do not equate a q-value with an individual null hypothesis's probability of being true.
-4. Respect hierarchical/gatekeeping or planned contrast procedures. Do not apply an extra adjustment to already adjusted Tukey/Games-Howell outputs without a distinct family rationale. Record which adjusted p value belongs to which family.
-5. For permutation inference in group-comparisons, require a valid exchangeability scheme, preserve pairing/blocks, specify statistic and null, and record exact enumeration versus Monte Carlo. For sampled permutations use a documented finite-simulation p estimator such as (b+1)/(B+1); record B, seed and simulation uncertainty. Small n alone does not justify exchangeability.
-6. Do not claim simultaneous coverage for ordinary 95% CIs. Generate adjusted intervals only with an appropriate procedure; otherwise label them pointwise.
+1. Define testing families, error criterion (FWER or FDR), target rate (default two-sided alpha = 0.05), primary/secondary/exploratory status and planned contrasts.
+2. Use Holm as a general FWER default; support Bonferroni, Hochberg (with positive dependence) and Benjamini–Hochberg/BY for FDR with documented dependency rationale.
+3. Use Storey q-values only for justified screening families with enough tests and documented pi0 estimation, tuning and bootstrapping.
+4. Respect hierarchical/gatekeeping or planned contrast procedures. Do not apply an extra adjustment to already adjusted procedures (e.g., Tukey HSD).
+5. For permutation inference in group-comparisons, require a valid exchangeability scheme, preserve pairing/blocks, use >= 10,000 permutations for alpha = 0.05 when feasible, and state whether the permutation distribution is exact or Monte Carlo.
+6. Do not claim simultaneous coverage for ordinary 95% CIs. Generate adjusted intervals only with an appropriate procedure (e.g., Bonferroni-adjusted or simultaneous intervals); otherwise report unadjusted intervals with an explicit caveat.
+
 ### Specific outputs and checks
-Save multiplicity_plan.json and adjusted_results.csv with analysis ID, family, method, family size, raw/adjusted p and CI coverage type. Verify input p ranges, family completeness and mapping, and adjustment properties appropriate to the selected method. Return adjusted outputs for validation.
+- Save `multiplicity_plan.json` and `adjusted_results.csv` with analysis ID, family, method, family size, raw/adjusted p and CI coverage.
+- Check monotonically nondecreasing adjusted p values with raw rank, valid bounds [0, 1] and matching family mappings.
 
 ## Shared diagnostic and multiplicity procedures
-The integrated diagnostic and multiplicity sections remain procedures within this skill. Correlation, regression, longitudinal and survival skills may consult the relevant sections, but must execute and record their own method-specific diagnostics and verification; do not defer these responsibilities to another skill. Consulting a procedure does not trigger unrelated group comparisons. Planning defines cross-analysis testing families; this skill may finalize their adjustments after all member results exist. Each result owner verifies its adjusted-result mapping and reruns verification after adjustment.
-
-## Internal verification — required before release
-Verify source/prepared hashes, plan and code versions, observation/pair/cluster counts, exclusions, labels, units, event/reference coding and effect direction. Check method/design/estimand compatibility, diagnostic evidence and applicable multiplicity. Recompute key descriptive values and denominators, check valid ranges, CI ordering and effect-scale identities such as OR or HR = exp(beta) where applicable. Rerun executable code in a clean R session when feasible and independently recompute key outputs or use an alternate implementation; distinguish reproducibility from independent verification. Set justified absolute/relative tolerances before comparison, retain full precision and account for simulation uncertainty.
-Save verification.json with analysis ID, result hashes, check, expectation, observed value, tolerance, evidence, severity and PASS/FAIL/NOT_CHECKED. PASS requires every applicable critical check to succeed; justify nonapplicability. An unchecked critical item prevents PASS. Record NEEDS_INPUT for missing essential decisions, BLOCKED for dependencies and FAIL for discrepancies. Correct issues within the responsible skill and rerun affected work; never silently edit results. Do not report a final result while its verification is unresolved. A generic check does not replace the method-specific diagnostics in this skill.
-
+- The integrated diagnostic and multiplicity sections remain procedures within this skill.
+- Correlation-analysis, regression-analysis, longitudinal-analysis and survival-analysis follow these shared procedures for model diagnostics and multiplicity adjustment, applying them to their own models and verifying their own diagnostic and adjusted outputs.
 
 
 ## Project-Wide Operating Rules & Governance (AGENTS.md & WORKFLOW.md)
@@ -103,14 +102,13 @@ Save verification.json with analysis ID, result hashes, check, expectation, obse
 - Never alter analyses to obtain significance or overwrite previous runs.
 
 ### Responsibility and gates
-- Planning defines the design, estimand, missing-data assumptions, analysis families and permitted remedies.
-- Profiling inspects; preparation implements documented changes and owns MI/pooling/sensitivity.
+- Planning defines the design, estimand, analysis families and permitted remedies.
+- Profiling inspects; preparation implements documented changes and transformations.
 - Each result-producing skill checks its own inputs and outputs.
 - Each analysis skill executes its own assumption assessment and method-specific diagnostics and independently verifies key computations where feasible.
 - Do not substitute generic normality tests for model-specific checks.
-- Do not infer MAR/MNAR from observed data alone or automatically replace HR with RMST.
-- Inferential analysis requires plan `READY`, deterministic preparation `COMPLETE` and its applicable missing-data protocol.
-- MI model fitting can start on completed datasets, but final inference requires pooled estimates and diagnostics.
+- Do not automatically replace HR with RMST.
+- Inferential analysis requires plan `READY` and deterministic preparation `COMPLETE`.
 - Final reporting requires matching verification `PASS` artifacts from every reported result owner.
 - A missing critical check blocks `PASS`.
 - Recheck affected downstream work after changes.
@@ -127,12 +125,11 @@ Save verification.json with analysis ID, result hashes, check, expectation, obse
 ### Workflow context and execution sequence
 1. Create a unique run and workflow log under project rules; read `analysis-planning` and record the request and required branches.
 2. Plan provisionally, run `data-profiling` and revisit material decisions until inferential plan status is `READY`. Profiling verifies its own counts, summaries and source integrity.
-3. Run `data-preparation` for approved deterministic changes and any planned MI. Preparation verifies transformations, observed-value preservation and imputation diagnostics.
+3. Run `data-preparation` for approved deterministic changes. Preparation verifies transformations and observed-value preservation.
 4. Run only the required `group-comparisons`, `correlation-analysis`, `regression-analysis`, `longitudinal-analysis` or `survival-analysis` branch. Each branch performs its own design and assumption checks, model diagnostics, numerical verification and clean-session reproducibility checks. Escalate unsupported designs and dependencies.
-5. With MI, fit the same model per completed dataset and return estimates/variances to `data-preparation` for pooling and its verification; preserve within/between-imputation uncertainty. Repeat for planned sensitivity scenarios without recursive routing.
-6. Finalize the prespecified testing families once all members exist. `group-comparisons` owns shared adjustment procedures; result owners verify their family mappings and adjusted outputs. Pending pooling or family adjustment prevents final inference.
-7. Each owner saves `verification.json` with matching result hashes and `PASS`/`FAIL`/`NOT_CHECKED` evidence. Correct errors in the owner skill and recheck all affected outputs. No standalone validation step or skill is invoked.
-8. `statistical-reporting` requires applicable owner `PASS` artifacts; generate tables, figures and Methods/Results and perform final source consistency checks. Return new calculations or methodological issues to the owner for correction and renewed verification.
+5. Finalize the prespecified testing families once all members exist. `group-comparisons` owns shared adjustment procedures; result owners verify their family mappings and adjusted outputs.
+6. Each owner saves `verification.json` with matching result hashes and `PASS`/`FAIL`/`NOT_CHECKED` evidence. Correct errors in the owner skill and recheck all affected outputs. No standalone validation step or skill is invoked.
+7. `statistical-reporting` requires applicable owner `PASS` artifacts; generate tables, figures and Methods/Results and perform final source consistency checks. Return new calculations or methodological issues to the owner for correction and renewed verification.
 
 - **Descriptive-only:** profiling and any required preparation, their internal verification, then reporting.
 - Record `IN_PROGRESS`, `NEEDS_INPUT`, `BLOCKED`, `FAILED` or `COMPLETED` separately from `READY` and verification `PASS`.

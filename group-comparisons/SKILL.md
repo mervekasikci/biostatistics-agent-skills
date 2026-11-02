@@ -102,13 +102,12 @@ description: Compare independent or paired groups with appropriate tests, effect
 
 ### Responsibility and gates
 - Planning defines the design, estimand, missing-data assumptions, analysis families and permitted remedies.
-- Profiling inspects; preparation implements documented changes and owns MI/pooling/sensitivity.
+- Profiling inspects; preparation implements documented changes and transformations.
 - Each result-producing skill checks its own inputs and outputs.
 - Each analysis skill executes its own assumption assessment and method-specific diagnostics and independently verifies key computations where feasible.
 - Do not substitute generic normality tests for model-specific checks.
-- Do not infer MAR/MNAR from observed data alone or automatically replace HR with RMST.
-- Inferential analysis requires plan `READY`, deterministic preparation `COMPLETE` and its applicable missing-data protocol.
-- MI model fitting can start on completed datasets, but final inference requires pooled estimates and diagnostics.
+- Do not automatically replace HR with RMST.
+- Inferential analysis requires plan `READY` and deterministic preparation `COMPLETE`.
 - Final reporting requires matching verification `PASS` artifacts from every reported result owner.
 - A missing critical check blocks `PASS`.
 - Recheck affected downstream work after changes.
@@ -125,12 +124,11 @@ description: Compare independent or paired groups with appropriate tests, effect
 ### Workflow context and execution sequence
 1. Create a unique run and workflow log under project rules; read `analysis-planning` and record the request and required branches.
 2. Plan provisionally, run `data-profiling` and revisit material decisions until inferential plan status is `READY`. Profiling verifies its own counts, summaries and source integrity.
-3. Run `data-preparation` for approved deterministic changes and any planned MI. Preparation verifies transformations, observed-value preservation and imputation diagnostics.
+3. Run `data-preparation` for approved deterministic changes. Preparation verifies transformations and observed-value preservation.
 4. Run only the required `group-comparisons`, `correlation-analysis`, `regression-analysis`, `longitudinal-analysis` or `survival-analysis` branch. Each branch performs its own design and assumption checks, model diagnostics, numerical verification and clean-session reproducibility checks. Escalate unsupported designs and dependencies.
-5. With MI, fit the same model per completed dataset and return estimates/variances to `data-preparation` for pooling and its verification; preserve within/between-imputation uncertainty. Repeat for planned sensitivity scenarios without recursive routing.
-6. Finalize the prespecified testing families once all members exist. `group-comparisons` owns shared adjustment procedures; result owners verify their family mappings and adjusted outputs. Pending pooling or family adjustment prevents final inference.
-7. Each owner saves `verification.json` with matching result hashes and `PASS`/`FAIL`/`NOT_CHECKED` evidence. Correct errors in the owner skill and recheck all affected outputs. No standalone validation step or skill is invoked.
-8. `statistical-reporting` requires applicable owner `PASS` artifacts; generate tables, figures and Methods/Results and perform final source consistency checks. Return new calculations or methodological issues to the owner for correction and renewed verification.
+5. Finalize the prespecified testing families once all members exist. `group-comparisons` owns shared adjustment procedures; result owners verify their family mappings and adjusted outputs.
+6. Each owner saves `verification.json` with matching result hashes and `PASS`/`FAIL`/`NOT_CHECKED` evidence. Correct errors in the owner skill and recheck all affected outputs. No standalone validation step or skill is invoked.
+7. `statistical-reporting` requires applicable owner `PASS` artifacts; generate tables, figures and Methods/Results and perform final source consistency checks. Return new calculations or methodological issues to the owner for correction and renewed verification.
 
 - **Descriptive-only:** profiling and any required preparation, their internal verification, then reporting.
 - Record `IN_PROGRESS`, `NEEDS_INPUT`, `BLOCKED`, `FAILED` or `COMPLETED` separately from `READY` and verification `PASS`.
